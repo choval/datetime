@@ -28,6 +28,7 @@ class DateTime {
   protected $format;
   protected $obj;
   protected $tzobj;
+  protected $holidays = [];
 
 
 
@@ -88,8 +89,18 @@ class DateTime {
    * Returns a \DateTimeZone
    */
   public static function timezoneParse($timezone) : \DateTimeZone {
+    if(is_int($timezone)) {
+      if($timezone >= -12 && $timezone <= 14) {
+        $timezone = (string)$timezone;
+      } else {
+        $symbol = ($timezone < 0) ? '-' : '+';
+        $hours = abs( floor($timezone/3600) );
+        $minutes = floor( $timezone/60 );
+        $timezone = sprintf( '%s%02d%02d', $symbol, $hours, $minutes );
+      }
+    }
     if(is_string($timezone)) {
-      if(preg_match('/^(?P<symbol>[\+\-])?(?P<hour>[01]?[0-9])?[:]?(?P<min>[0-9]0)?$/',$timezone, $match)) {
+      if(preg_match('/^(?P<symbol>[\+\-])?(?P<hour>[01]?[0-9])?[:]?(?P<min>[0-9][05])?$/',$timezone, $match)) {
         $symbol = $match['symbol'] ?? '+';
         $hour = (int)$match['hour'];
         $min = (int) ($match['min'] ?? 0);
@@ -163,8 +174,15 @@ class DateTime {
   /**
    * Outputs the date in a specific format
    */
-  public function format(string $format='c') : string {
-    return $this->obj->format($format);
+  public function format(string $format='c', $timezone=NULL) : string {
+    $obj = clone $this->obj;
+    if(!is_null($timezone)) {
+      $timezone = static::timezoneParse( $timezone );
+      if($timezone) {
+        $obj->setTimezone($timezone);
+      }
+    }
+    return $obj->format($format);
   }
 
 
@@ -186,6 +204,7 @@ class DateTime {
       'time' => $this->time,
       'offset' => $this->offset,
       'format' => $this->format,
+      'holidays' => $this->holidays,
     ];
     return $out;
   }
@@ -368,8 +387,14 @@ class DateTime {
   public function iso8601() {
     return $this->format(static::ISO8601);
   }
+
+
+
+  /**
+   * ISO format shorthand, but timezone with colon
+   */
   public function iso() {
-    return $this->iso8601();
+    return $this->format('Y-m-d\TH:i:sP');
   }
 
 
@@ -415,6 +440,280 @@ class DateTime {
    */
   public function w3c() {
     return $this->format(static::W3C);
+  }
+
+
+
+  /**
+   * Start of day
+   */
+  public function startOfDay() : self {
+    return $this->setTime(0,0,0);
+  }
+
+
+
+  /**
+   * End of day
+   */
+  public function endOfDay() : self {
+    return $this->setTime(23,59,59);
+  }
+
+
+
+  /**
+   * Midday
+   */
+  public function midDay() : self {
+    return $this->setTime(12,0,0);
+  }
+
+
+
+  /**
+   * First day of year
+   */
+  public function firstDayOfYear(int $year=NULL) : self {
+    if(is_null($year)) {
+      $year = (int)$this->format('Y');
+    }
+    return $this->setDate( $year, 1, 1);
+  }
+
+
+
+  /**
+   * Last day of year
+   */
+  public function lastDayOfYear(int $year=NULL) : self {
+    if(is_null($year)) {
+      $year = (int)$this->format('Y');
+    }
+    return $this->setDate( $year, 12, 31);
+  }
+
+
+
+  /**
+   * First day of month
+   */
+  public function firstDayOfMonth(int $month=NULL) : self {
+    if(is_null($month)) {
+      $month = (int)$this->format('n');
+    }
+    $year = (int)$this->format('Y');
+    return $this->setDate( $year, $month, 1);
+  }
+
+
+
+  /**
+   * Last day of month
+   */
+  public function lastDayOfMonth(int $month=NULL) : self {
+    if(is_null($month)) {
+      $month = (int)$this->format('n');
+    }
+    $year = (int)$this->format('Y');
+    $this->setDate( $year, $month, 1)
+      ->add('1 month')
+      ->sub('1 day');
+    return $this;
+  }
+
+
+
+  /**
+   * First sunday of month
+   */
+  public function firstSundayOfMonth(int $month=NULL) : self {
+    $this->firstDayOfMonth($month);
+    $diff = 7 - (int)$this->format('N');
+    if($diff) {
+      $this->add($diff.' days');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Last sunday of month
+   */
+  public function lastSundayOfMonth(int $month=NULL) : self {
+    $this->lastDayOfMonth($month);
+    $diff = $this->format('N');
+    if($diff != '7') {
+      $this->sub($diff.' days');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * First monday of month
+   */
+  public function firstMondayOfMonth(int $month=NULL) : self {
+    $this->firstDayOfMonth($month);
+    while( $this->format('N') != '1') {
+      $this->add('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Last monday of month
+   */
+  public function lastMondayOfMonth(int $month=NULL) : self {
+    $this->lastDayOfMonth($month);
+    while( $this->format('N') != '1' ) {
+      $this->sub('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * First friday of month
+   */
+  public function firstFridayOfMonth(int $month=NULL) : self {
+    $this->firstDayOfMonth($month);
+    while( $this->format('N') != '5' ) {
+      $this->add('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Last friday of month
+   */
+  public function lastFridayOfMonth(int $month=NULL) : self {
+    $this->lastDayOfMonth($month);
+    while( $this->format('N') != '5' ) {
+      $this->sub('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Sets holidays
+   */
+  public function setHolidays(array $holidays) : self {
+    $this->holidays = [];
+    foreach($holidays as $holiday) {
+      $this->addHoliday( $holiday );
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Get holidays
+   */
+  public function getHolidays() : array {
+    return $this->holidays;
+  }
+
+
+
+  /**
+   * Adds holiday
+   */
+  public function addHoliday( $date, string $format=NULL ) : self {
+    if(is_string($time)) {
+      $timezone = $this->getTimezone();
+      $date = new self( $date, $timezone, $format );
+    }
+    $formatted = $date->format('Y-m-d');
+    if(!in_array($formatted, $this->holidays)) {
+      $this->holidays[] = $date->format('Y-m-d');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Is holiday
+   */
+  public function isHoliday() : bool {
+    $formatted = $this->format('Y-m-d');
+    return in_array($formatted, $this->holidays);
+  }
+
+
+
+  /**
+   * Is work day
+   */
+  public function isWorkDay() : bool {
+    $dow = $this->format('N');
+    if($dow > 5) {
+      return false;
+    }
+    return $this->isHoliday();
+  }
+
+
+
+  /**
+   * First workday of month
+   */
+  public function firstWorkDayOfMonth(int $month=NULL) : self {
+    $this->firstDayOfMonth($month);
+    while( !$this->isWorkDay() ) {
+      $this->add('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Last workday of month
+   */
+  public function lastWorkDayOfMonth(int $month=NULL) : self {
+    $this->lastDayOfMonth($month);
+    while( !$this->isWorkDay() ) {
+      $this->sub('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * First workday of year
+   */
+  public function firstWorkDayOfYear(int $year=NULL) : self {
+    $this->firstDayOfYear($year);
+    while( !$this->isWorkDay() ) {
+      $this->add('1 day');
+    }
+    return $this;
+  }
+
+
+
+  /**
+   * Last workday of year
+   */
+  public function lastWorkDayOfYear(int $year=NULL) : self {
+    $this->lastDayOfYear($year);
+    while( !$this->isWorkDay() ) {
+      $this->sub('1 day');
+    }
+    return $this;
   }
 
 

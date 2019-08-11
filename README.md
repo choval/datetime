@@ -24,10 +24,11 @@ use Choval\DateTime;
 $a = new DateTime;
 ```
 
+The following examples will use the full class name to avoid confussion.
+
 ## Usage
 
 ```php
-
 // Working with timestamps
 $t = 946684800;     // 2000-01-01 00:00:00+00:00
 
@@ -78,22 +79,118 @@ $e->modify('+3 hours');
 echo $e->format('c');       // 2000-01-31T12:00:00-03:00
 ```
 
+#### Constructor
+
+The `__constructor` method allows a third parameter for passing the format of the first.
+
+```php
+__construct(
+	string $time='now',
+	$timezone=NULL,
+	string $format=NULL
+	)
+```
+
+This allows passing custom format date time strings.
+
+```php
+$a = new Choval\DateTime( '31/12/2019', '-3', 'd/m/Y' );
+echo $a->format('c');	// 2019-12-31T00:00:00-03:00
+```
+
+#### Format
+
+The `format` method allows a second paratemer for passing the timezone of the output, otherwise the timezone of the object is used.
+
+The passed timezone will not change the one of the object itself. See the following example:
+
+```php
+$a = new Choval\DateTime('2019-01-01 00:00:00', '-03:00');
+
+echo $a->format('c');
+// 2019-01-01T00:00:00-03:00
+
+echo $a->format('c', '+08:00');
+// 2019-01-01T11:00:00+08:00
+
+echo $a->format('c', 'UTC');
+// 2019-01-01T03:00:00+00:00
+
+echo $a->format('c');
+// 2019-01-01T00:00:00-03:00
+// Notice how the original timezone is kept
+```
+
+
 ### Extras
 
-The following methods were added:
+The following methods were added. If you use these, you won't be able to go back to PHP's DateTime.
 
-* atom
-* cookie
-* iso8601
-* iso (alias of iso8601)
-* rfc822
-* rfc850
-* rfc1036
-* rfc1123
-* rfc2822
-* rfc3339
-* rfc3339Extended
-* rss
-* w3c
+#### Time modifiers
 
+* startOfDay(void) : DateTime
+* endOfDay(void) : DateTime
+* midDay(void) : DateTime
+
+#### Date modifiers for the year
+
+* firstDayOfYear([int $year]) : DateTime
+* lastDayOfYear([int $year]) : DateTime
+
+```php
+$year = new Choval\DateTime;
+$since = $year->firstDayOfYear()->startOfDay();
+$till = $year->lastDayOfYear()->endOfDay();
+
+$sql = "SELECT * FROM users WHERE created >= ? AND created <= ?";
+$q = $db->query($sql, [ $since,$till ]);
+$rows = yield $q->fetchAll();
+```
+
+#### Date modifiers for the month
+
+* firstDayOfMonth([int $month]) : DateTime
+* lastDayOfMonth([int $month]) : DateTime
+* firstSundayOfMonth([int $month]) : DateTime
+* lastSundayOfMonth([int $month]) : DateTime
+* firstMondayOfMonth([int $month]) : DateTime
+* lastMondayOfMonth([int $month]) : DateTime
+* firstFridayOfMonth([int $month]) : DateTime
+* lastFridayOfMonth([int $month]) : DateTime
+
+#### Holidays
+
+* setHolidays(array $holidays) : DateTime
+* getHolidays(void) : array
+* addHoliday($date, $format=NULL)
+* isHoliday(void) : bool
+
+#### Workday
+
+Monday to friday, without holidays.
+
+* isWorkDay(void) : bool
+* firstWorkDayOfMonth([int $month]) : DateTime
+* lastWorkDayOfMonth([int $month]) : DateTime
+* firstWorkDayOfYear([int $year]) : DateTime
+* lastWorkDayOfYear([int $year]) : DateTime
+
+#### Formats
+
+* atom(void) : string
+* iso(void) : string
+* cookie(void) : string
+* iso8601(void) : string
+* rfc822(void) : string
+* rfc850(void) : string
+* rfc1036(void) : string
+* rfc1123(void) : string
+* rfc2822(void) : string
+* rfc3339(void) : string
+* rfc3339Extended(void) : string
+* rss(void) : string
+* w3c(void) : string
+
+Note that the ISO8601 constant returns the timezone without colon format.  
+If needed, use the atom format or the `iso` method, which returns `Y-m-d\TH:i:sP`.
 
