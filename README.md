@@ -52,8 +52,6 @@ echo $c->getTimestamp();    // 946684800
 
 If replacing PHP's DateTime, this class behaves almost exactly alike. With the exception of the constructor handling `int` as a timestamp even for low numbers.
 
-Other than 
-
 ```php
 // Flexible timezone parameter
 // -3, '-03' , '-0300', '-03:00', 'America/Argentina/Buenos_Aires'
