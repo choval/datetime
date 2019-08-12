@@ -50,6 +50,10 @@ echo $c->getTimestamp();    // 946684800
 
 ### Differences
 
+If replacing PHP's DateTime, this class behaves almost exactly alike. With the exception of the constructor handling `int` as a timestamp even for low numbers.
+
+Other than 
+
 ```php
 // Flexible timezone parameter
 // -3, '-03' , '-0300', '-03:00', 'America/Argentina/Buenos_Aires'
@@ -124,24 +128,42 @@ echo $a->format('c');
 
 ### Extras
 
-The following methods were added. If you use these, you won't be able to go back to PHP's DateTime.
+The following methods were added to move around dates and printing/returning them as strings.
 
 #### Time modifiers
 
-* startOfDay(void) : DateTime
-* endOfDay(void) : DateTime
-* midDay(void) : DateTime
+* startOfDay(void) : self
+* midDay(void) : self
+* endOfDay(void) : self
+
+```php
+$a = new Choval\DateTime('2000-01-01 12:34:56', 'UTC');
+echo $a->startOfDay()->format('H:i:s');	// 00:00:00
+echo $a->midDay()->format('H:i:s');		// 12:00:00
+echo $a->endOfDay()->format('H:i:s');	// 23:59:59
+
+echo $a->format('c');			// 2000-01-01T23:59:59+00:00
+
+$a->setTimezone('+01:00');
+echo $a->format('H:i:s');					// 00:59:59
+echo $a->format('c');			// 2000-01-02T00:59:59+01:00
+echo $a->format('c', 'UTC');	// 2000-01-01T23:59:59+00:00
+
+echo $a->endOfDay()->format('H:i:s');	// 23:59:59
+echo $a->format('c');			// 2000-01-02T23:59:59+01:00
+```
 
 #### Date modifiers for the year
 
-* firstDayOfYear([int $year]) : DateTime
-* lastDayOfYear([int $year]) : DateTime
+* firstDayOfYear([int $year]) : self
+* lastDayOfYear([int $year]) : self
 
 ```php
 $year = new Choval\DateTime;
 $since = $year->firstDayOfYear()->startOfDay();
 $till = $year->lastDayOfYear()->endOfDay();
 
+// Useful for SQL
 $sql = "SELECT * FROM users WHERE created >= ? AND created <= ?";
 $q = $db->query($sql, [ $since,$till ]);
 $rows = yield $q->fetchAll();
@@ -149,31 +171,62 @@ $rows = yield $q->fetchAll();
 
 #### Date modifiers for the month
 
-* firstDayOfMonth([int $month]) : DateTime
-* lastDayOfMonth([int $month]) : DateTime
-* firstSundayOfMonth([int $month]) : DateTime
-* lastSundayOfMonth([int $month]) : DateTime
-* firstMondayOfMonth([int $month]) : DateTime
-* lastMondayOfMonth([int $month]) : DateTime
-* firstFridayOfMonth([int $month]) : DateTime
-* lastFridayOfMonth([int $month]) : DateTime
+* firstDayOfMonth([int $month]) : self
+* lastDayOfMonth([int $month]) : self
+* firstSundayOfMonth([int $month]) : self
+* lastSundayOfMonth([int $month]) : self
+* firstMondayOfMonth([int $month]) : self
+* lastMondayOfMonth([int $month]) : self
+* firstFridayOfMonth([int $month]) : self
+* lastFridayOfMonth([int $month]) : self
+
+#### Workday
+
+A non-weekend day and non-holiday (see Holidays).
+
+* isWorkDay(void) : bool
+* firstWorkDayOfMonth([int $month]) : self
+* lastWorkDayOfMonth([int $month]) : self
+* firstWorkDayOfYear([int $year]) : self
+* lastWorkDayOfYear([int $year]) : self
 
 #### Holidays
 
 * setHolidays(array $holidays) : DateTime
 * getHolidays(void) : array
-* addHoliday($date, $format=NULL)
+* addHoliday(string $date)
 * isHoliday(void) : bool
 
-#### Workday
+```php
+$a = new Choval\DateTime('2019-06-30');
+// Holidays need to be in YYYY-MM-DD or MM-DD format
+// Set Holidays, overwrites current list.
+$a->setHolidays([
+	'01-01',	// New year
+	'12-25',	// Christmas
+]);
 
-Monday to friday, without holidays.
+// A holiday that is in one specific year
+$a->addHoliday('2019-01-02');
 
-* isWorkDay(void) : bool
-* firstWorkDayOfMonth([int $month]) : DateTime
-* lastWorkDayOfMonth([int $month]) : DateTime
-* firstWorkDayOfYear([int $year]) : DateTime
-* lastWorkDayOfYear([int $year]) : DateTime
+// Gets the holidays
+$holidays = $a->getHolidays();
+
+// First workday of the year
+// Notice how its not new year,
+// not 2019-01-02 and not on a weekend.
+$b = clone $a;
+$b->firstWorkDayOfYear();
+echo $b->format('Y-m-d');		// Returns 2019-01-03 
+// since the 2nd of january was added as aholiday for 2019.
+
+$b->sub('1 year')->firstWorkDayOfYear();
+echo $b->format('Y-m-d');		// Returns 2018-01-02
+// 2019-01-02 was added as a holiday with a year,
+// meaning that only on that year its a holiday.
+// New year was added without a year, meaning every year.
+```
+
 
 #### Formats
 
@@ -191,6 +244,5 @@ Monday to friday, without holidays.
 * rss(void) : string
 * w3c(void) : string
 
-Note that the ISO8601 constant returns the timezone without colon format.  
-If needed, use the atom format or the `iso` method, which returns `Y-m-d\TH:i:sP`.
+Note that the ISO8601 constant returns the timezone without colon format. If needed, use the `atom` format or the `iso` method, both return `Y-m-d\TH:i:sP`.
 

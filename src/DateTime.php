@@ -629,14 +629,17 @@ class DateTime {
   /**
    * Adds holiday
    */
-  public function addHoliday( $date, string $format=NULL ) : self {
-    if(is_string($time)) {
-      $timezone = $this->getTimezone();
-      $date = new self( $date, $timezone, $format );
-    }
-    $formatted = $date->format('Y-m-d');
-    if(!in_array($formatted, $this->holidays)) {
-      $this->holidays[] = $date->format('Y-m-d');
+  public function addHoliday(string $date) : self {
+    if(
+      preg_match('/^[01][0-9]-[0-3][0-9]$/', $date)
+      ||
+      preg_match('/^[0-9]{4}-[01][0-9]-[0-3][0-9]$/', $date)
+    ) {
+      if(!in_array($date, $this->holidays)) {
+        $this->holidays[] = $date;
+      }
+    } else {
+      throw new \Exception('Non valid holiday date. Please use YYYY-MM-DD or MM-DD');
     }
     return $this;
   }
@@ -647,8 +650,9 @@ class DateTime {
    * Is holiday
    */
   public function isHoliday() : bool {
-    $formatted = $this->format('Y-m-d');
-    return in_array($formatted, $this->holidays);
+    $formatted_full = $this->format('Y-m-d');
+    $formatted_part = $this->format('m-d');
+    return (in_array($formatted_full, $this->holidays) || in_array($formatted_part, $this->holidays) );
   }
 
 
