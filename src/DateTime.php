@@ -152,6 +152,7 @@ class DateTime {
   public function add($interval) : self {
     $interval = static::intervalParse($interval);
     $this->obj->add($interval);
+    $this->time = (int)$this->obj->format('U');
     return $this;
   }
 
@@ -166,6 +167,7 @@ class DateTime {
   public function sub($interval) : self {
     $interval = static::intervalParse($interval);
     $this->obj->sub($interval);
+    $this->time = (int)$this->obj->format('U');
     return $this;
   }
 
