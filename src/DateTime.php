@@ -193,7 +193,7 @@ class DateTime {
    * toString magic method
    */
   public function __toString() {
-    return $this->format('c');
+    return $this->iso();
   }
 
 
