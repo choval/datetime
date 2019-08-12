@@ -101,7 +101,7 @@ class DateTime {
     }
     if(is_string($timezone)) {
       if(preg_match('/^(?P<symbol>[\+\-])?(?P<hour>[01]?[0-9])?[:]?(?P<min>[0-9][05])?$/',$timezone, $match)) {
-        $symbol = $match['symbol'] ?? '+';
+        $symbol = empty($match['symbol']) ? '+': $match['symbol'];
         $hour = (int)$match['hour'];
         $min = (int) ($match['min'] ?? 0);
         $formatted = sprintf('%s%02d%02d', $symbol, $hour, $min);
@@ -665,7 +665,7 @@ class DateTime {
     if($dow > 5) {
       return false;
     }
-    return $this->isHoliday();
+    return !$this->isHoliday();
   }
 
 
