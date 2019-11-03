@@ -146,17 +146,4 @@ class DateTimeTest extends TestCase {
         $a = new DateTime($date);
         $this->assertEquals('01', $a->lastDayOfMonth()->add('1 day')->format('d') );
     }
-
-
-
-    public function testNextPrevMonth()
-    {
-        $date = '2019-10-31';
-        $d = new DateTime($date);
-        $this->assertEquals($date, $d->format('Y-m-d'));
-        $d->nextMonth();
-        $this->assertEquals('2019-11-30', $d->format('Y-m-d'));
-        $d->nextMonth(31);
-        $this->assertEquals('2019-12-31', $d->format('Y-m-d'));
-    }
 }
