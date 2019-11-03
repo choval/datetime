@@ -177,6 +177,27 @@ $rows = yield $q->fetchAll();
 * lastMondayOfMonth([int $month]) : self
 * firstFridayOfMonth([int $month]) : self
 * lastFridayOfMonth([int $month]) : self
+* nextMonth([int $day]) : self
+* prevMonth([int $day]) : self
+
+```php
+$d = new Choval\DateTime('2019-10-31');
+$d->add('1 month');
+echo $d->format('Y-m-d');
+// Returns 2019-12-01, just like PHP's DateTime modifiers
+
+$d = new Choval\DateTime('2019-10-31');
+$d->nextMonth();
+echo $d->format('Y-m-d');
+// Returns 2019-11-30, last day of next month
+
+// Using nextMonth/prevMonth, the target day can be passed
+// This is useful for billing dates
+$d->nextMonth(31);
+echo $d->format('Y-m-d');
+// Returns 2019-12-31, last day of next month, but
+// original day was 31, so it gets pushed to 31.
+```
 
 #### Workday
 
