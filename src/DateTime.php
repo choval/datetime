@@ -208,6 +208,16 @@ class DateTime
 
 
     /**
+     * Clone method
+     */
+    public function __clone() {
+        $this->obj = clone $this->obj;
+        $this->tzobj = clone $this->tzobj;
+    }
+
+
+
+    /**
      * Sleep
      */
     public function __sleep()
