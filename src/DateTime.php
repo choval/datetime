@@ -2,9 +2,10 @@
 namespace Choval;
 
 use \DateTimeInterface;
+use \Serializable;
 use \DateTime as PhpDateTime;
 
-class DateTime
+class DateTime implements Serializable
 {
 
 
@@ -218,26 +219,29 @@ class DateTime
 
 
     /**
-     * Sleep
+     * Serialize
      */
-    public function __sleep()
-    {
+    public function serialize() {
         $out = [
             'time' => $this->time,
             'offset' => $this->offset,
             'format' => $this->format,
             'holidays' => $this->holidays,
         ];
-        return $out;
+        return serialize($out);
     }
 
 
 
     /**
-     * Wakeup
+     * Unserialize
      */
-    public function __wakeup()
-    {
+    public function unserialize($data) {
+        $in = unserialize($data);
+        $this->time = $in['time'];
+        $this->offset = $in['offset'];
+        $this->format = $in['format'];
+        $this->holidays = $in['holidays'];
         $this->tzobj = static::timezoneParse( $this->offset );
         $this->obj = static::datetimeParse( $this->time, $this->tzobj );
     }
