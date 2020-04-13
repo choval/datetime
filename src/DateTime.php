@@ -54,7 +54,10 @@ class DateTime implements Serializable
             $this->format = $format;
             $this->obj = date_create_from_format( $format, $time, $this->tzobj );
         }
-        $this->time = $this->obj->getTimestamp();
+        $this->time = 0;
+        if ($this->obj) {
+            $this->time = $this->obj->getTimestamp();
+        }
     }
 
 
