@@ -57,6 +57,8 @@ class DateTime implements Serializable
         $this->time = 0;
         if ($this->obj) {
             $this->time = $this->obj->getTimestamp();
+        } else {
+            $this->obj = PhpDateTime::createFromFormat('U', '0');;
         }
     }
 
