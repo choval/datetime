@@ -149,6 +149,9 @@ class DateTime implements Serializable
                 $obj = date_create( $time );
             }
         }
+        if ($obj === false) {
+            throw new \RuntimeException('Not a valid date');
+        }
         return $obj;
     }
 
