@@ -7,9 +7,6 @@ use \DateTime as PhpDateTime;
 
 class DateTime implements Serializable
 {
-
-
-
     const ATOM = "Y-m-d\TH:i:sP";
     const COOKIE = "l, d-M-Y H:i:s T";
     const ISO8601 = "Y-m-d\TH:i:sO";
@@ -36,29 +33,30 @@ class DateTime implements Serializable
     /**
      * Constructor
      */
-    public function __construct(string $time='now', $timezone=NULL, string $format=NULL)
+    public function __construct(string $time='now', $timezone=null, string $format=null)
     {
-        if(is_null($timezone)) {
+        if (is_null($timezone)) {
             $tz = date_default_timezone_get();
             $this->tzobj = timezone_open($tz);
         } else {
             $this->tzobj = static::timezoneParse($timezone);
         }
-        $this->offset = $this->tzobj->getOffset( new PhpDateTime() );
-        if(is_null($format)) {
-            if(is_numeric($time)) {
+        $this->offset = $this->tzobj->getOffset(new PhpDateTime());
+        if (is_null($format)) {
+            if (is_numeric($time)) {
                 $this->format = 'U';
             }
             $this->obj = static::datetimeParse($time, $this->tzobj);
         } else {
             $this->format = $format;
-            $this->obj = date_create_from_format( $format, $time, $this->tzobj );
+            $this->obj = date_create_from_format($format, $time, $this->tzobj);
         }
         $this->time = 0;
         if ($this->obj) {
             $this->time = $this->obj->getTimestamp();
         } else {
-            $this->obj = PhpDateTime::createFromFormat('U', '0');;
+            $this->obj = PhpDateTime::createFromFormat('U', '0');
+            ;
         }
     }
 
@@ -67,9 +65,9 @@ class DateTime implements Serializable
     /**
      * Creats from a format
      */
-    static function createFromFormat(string $format, string $time='now', $timezone=NULL) : self
+    public static function createFromFormat(string $format, string $time='now', $timezone=null) : self
     {
-        return new static( $time, $timezone, $format);
+        return new static($time, $timezone, $format);
     }
 
 
@@ -79,14 +77,14 @@ class DateTime implements Serializable
      */
     public static function intervalParse($interval) : \DateInterval
     {
-        if(is_string($interval)) {
-            if(preg_match('/^P([0-9]+[YMDW])*(T([0-9]+[HMS])+)?$/', $interval)) {
+        if (is_string($interval)) {
+            if (preg_match('/^P([0-9]+[YMDW])*(T([0-9]+[HMS])+)?$/', $interval)) {
                 $interval = new \DateInterval($interval);
             } else {
                 $interval = \DateInterval::createFromDateString($interval);
             }
         }
-        if(is_object($interval) && is_a($interval, \DateInterval::class)) {
+        if (is_object($interval) && is_a($interval, \DateInterval::class)) {
             return $interval;
         }
         return new \DateInterval('P0D');
@@ -99,18 +97,18 @@ class DateTime implements Serializable
      */
     public static function timezoneParse($timezone) : \DateTimeZone
     {
-        if(is_int($timezone)) {
-            if($timezone >= -12 && $timezone <= 14) {
+        if (is_int($timezone)) {
+            if ($timezone >= -12 && $timezone <= 14) {
                 $timezone = (string)$timezone;
             } else {
                 $symbol = ($timezone < 0) ? '-' : '+';
-                $hours = abs( floor($timezone/3600) );
-                $minutes = floor( $timezone/60 );
-                $timezone = sprintf( '%s%02d%02d', $symbol, $hours, $minutes );
+                $hours = abs(floor($timezone/3600));
+                $minutes = floor($timezone/60);
+                $timezone = sprintf('%s%02d%02d', $symbol, $hours, $minutes);
             }
         }
-        if(is_string($timezone)) {
-            if(preg_match('/^(?P<symbol>[\+\-])?(?P<hour>[01]?[0-9])?[:]?(?P<min>[0-9][05])?$/',$timezone, $match)) {
+        if (is_string($timezone)) {
+            if (preg_match('/^(?P<symbol>[\+\-])?(?P<hour>[01]?[0-9])?[:]?(?P<min>[0-9][05])?$/', $timezone, $match)) {
                 $symbol = empty($match['symbol']) ? '+': $match['symbol'];
                 $hour = (int)$match['hour'];
                 $min = (int) ($match['min'] ?? 0);
@@ -120,7 +118,7 @@ class DateTime implements Serializable
                 $timezone = timezone_open($timezone);
             }
         }
-        if(is_object($timezone) && is_a($timezone, \DateTimeZone::class)) {
+        if (is_object($timezone) && is_a($timezone, \DateTimeZone::class)) {
             return $timezone;
         }
         return new \DateTimeZone('+0000');
@@ -133,20 +131,20 @@ class DateTime implements Serializable
      */
     public static function datetimeParse($time='now', $timezone=null) : PhpDateTime
     {
-        if($timezone) {
+        if ($timezone) {
             $timezone = static::timezoneParse($timezone);
         }
-        if(is_numeric($time)) {
+        if (is_numeric($time)) {
             $obj = new PhpDateTime();
             $obj->setTimestamp($time);
-            if($timezone) {
+            if ($timezone) {
                 $obj->setTimezone($timezone);
             }
         } else {
-            if($timezone) {
+            if ($timezone) {
                 $obj = date_create($time, $timezone);
             } else {
-                $obj = date_create( $time );
+                $obj = date_create($time);
             }
         }
         if ($obj === false) {
@@ -192,12 +190,12 @@ class DateTime implements Serializable
     /**
      * Outputs the date in a specific format
      */
-    public function format(string $format='c', $timezone=NULL) : string
+    public function format(string $format='c', $timezone=null) : string
     {
         $obj = clone $this->obj;
-        if(!is_null($timezone)) {
-            $timezone = static::timezoneParse( $timezone );
-            if($timezone) {
+        if (!is_null($timezone)) {
+            $timezone = static::timezoneParse($timezone);
+            if ($timezone) {
                 $obj->setTimezone($timezone);
             }
         }
@@ -219,7 +217,8 @@ class DateTime implements Serializable
     /**
      * Clone method
      */
-    public function __clone() {
+    public function __clone()
+    {
         $this->obj = clone $this->obj;
         $this->tzobj = clone $this->tzobj;
     }
@@ -229,7 +228,8 @@ class DateTime implements Serializable
     /**
      * Serialize
      */
-    public function serialize() {
+    public function serialize()
+    {
         $out = [
             'time' => $this->time,
             'offset' => $this->offset,
@@ -244,14 +244,15 @@ class DateTime implements Serializable
     /**
      * Unserialize
      */
-    public function unserialize($data) {
+    public function unserialize($data)
+    {
         $in = unserialize($data);
         $this->time = $in['time'];
         $this->offset = $in['offset'];
         $this->format = $in['format'];
         $this->holidays = $in['holidays'];
-        $this->tzobj = static::timezoneParse( $this->offset );
-        $this->obj = static::datetimeParse( $this->time, $this->tzobj );
+        $this->tzobj = static::timezoneParse($this->offset);
+        $this->obj = static::datetimeParse($this->time, $this->tzobj);
     }
 
 
@@ -289,7 +290,7 @@ class DateTime implements Serializable
     /**
      * Sets the date
      */
-    public function setDate( int $year, int $month, int $day) : self
+    public function setDate(int $year, int $month, int $day) : self
     {
         $this->obj->setDate($year, $month, $day);
         $this->time = (int)$this->obj->format('U');
@@ -301,7 +302,7 @@ class DateTime implements Serializable
     /**
      * Sets the ISO date
      */
-    public function setISODate( int $year, int $week, int $second=0) : self
+    public function setISODate(int $year, int $week, int $second=0) : self
     {
         $this->obj->setISODate($year, $week, $second);
         $this->time = (int)$this->obj->format('U');
@@ -313,7 +314,7 @@ class DateTime implements Serializable
     /**
      * Sets the time
      */
-    public function setTime( int $hour, int $minute, int $second=0) : self
+    public function setTime(int $hour, int $minute, int $second=0) : self
     {
         $this->obj->setTime($hour, $minute, $second);
         $this->time = (int)$this->obj->format('U');
@@ -325,7 +326,7 @@ class DateTime implements Serializable
     /**
      * Sets the timestamp
      */
-    public function setTimestamp( int $time ) : self
+    public function setTimestamp(int $time) : self
     {
         $this->time = $time;
         $this->obj = new PhpDateTime();
@@ -339,10 +340,10 @@ class DateTime implements Serializable
     /**
      * Sets the timezone
      */
-    public function setTimezone( $timezone ) : self
+    public function setTimezone($timezone) : self
     {
-        $timezone = static::timezoneParse( $timezone );
-        if($timezone) {
+        $timezone = static::timezoneParse($timezone);
+        if ($timezone) {
             $this->tzobj = $timezone;
             $this->obj->setTimezone($timezone);
         }
@@ -382,9 +383,9 @@ class DateTime implements Serializable
     /**
      * Diff
      */
-    public function diff( DateTimeInterface $datetime2, bool $absolute = FALSE ) : \DateInterval
+    public function diff(DateTimeInterface $datetime2, bool $absolute = false) : \DateInterval
     {
-        return $this->obj->diff( $datetime2, $absolute );
+        return $this->obj->diff($datetime2, $absolute);
     }
 
 
@@ -392,9 +393,9 @@ class DateTime implements Serializable
     /**
      * create from immutable
      */
-    public static function createFromImmutable( \DateTimeImmutable $datetime ) : self
+    public static function createFromImmutable(\DateTimeImmutable $datetime) : self
     {
-        $dtobj = PhpDateTime::createFromImmutable( $datetime );
+        $dtobj = PhpDateTime::createFromImmutable($datetime);
         $obj = new self($dtobj);
         return $obj;
     }
@@ -452,9 +453,10 @@ class DateTime implements Serializable
 
 
     /**
-     * Format for MySQL datetime 
+     * Format for MySQL datetime
      */
-    public function mysql($timezone=null) {
+    public function mysql($timezone=null)
+    {
         return $this->format('Y-m-d H:i:s', $timezone);
     }
 
@@ -519,7 +521,7 @@ class DateTime implements Serializable
      */
     public function startOfDay() : self
     {
-        return $this->setTime(0,0,0);
+        return $this->setTime(0, 0, 0);
     }
 
 
@@ -529,7 +531,7 @@ class DateTime implements Serializable
      */
     public function endOfDay() : self
     {
-        return $this->setTime(23,59,59);
+        return $this->setTime(23, 59, 59);
     }
 
 
@@ -539,7 +541,7 @@ class DateTime implements Serializable
      */
     public function midDay() : self
     {
-        return $this->setTime(12,0,0);
+        return $this->setTime(12, 0, 0);
     }
 
 
@@ -547,12 +549,12 @@ class DateTime implements Serializable
     /**
      * First day of year
      */
-    public function firstDayOfYear(int $year=NULL) : self
+    public function firstDayOfYear(int $year=null) : self
     {
-        if(is_null($year)) {
+        if (is_null($year)) {
             $year = (int)$this->format('Y');
         }
-        return $this->setDate( $year, 1, 1);
+        return $this->setDate($year, 1, 1);
     }
 
 
@@ -560,12 +562,12 @@ class DateTime implements Serializable
     /**
      * Last day of year
      */
-    public function lastDayOfYear(int $year=NULL) : self
+    public function lastDayOfYear(int $year=null) : self
     {
-        if(is_null($year)) {
+        if (is_null($year)) {
             $year = (int)$this->format('Y');
         }
-        return $this->setDate( $year, 12, 31);
+        return $this->setDate($year, 12, 31);
     }
 
 
@@ -573,13 +575,13 @@ class DateTime implements Serializable
     /**
      * First day of month
      */
-    public function firstDayOfMonth(int $month=NULL) : self
+    public function firstDayOfMonth(int $month=null) : self
     {
-        if(is_null($month)) {
+        if (is_null($month)) {
             $month = (int)$this->format('n');
         }
         $year = (int)$this->format('Y');
-        return $this->setDate( $year, $month, 1);
+        return $this->setDate($year, $month, 1);
     }
 
 
@@ -587,13 +589,13 @@ class DateTime implements Serializable
     /**
      * Last day of month
      */
-    public function lastDayOfMonth(int $month=NULL) : self
+    public function lastDayOfMonth(int $month=null) : self
     {
-        if(is_null($month)) {
+        if (is_null($month)) {
             $month = (int)$this->format('n');
         }
         $year = (int)$this->format('Y');
-        $this->setDate( $year, $month, 1)
+        $this->setDate($year, $month, 1)
             ->add('1 month')
             ->sub('1 day');
         return $this;
@@ -604,11 +606,11 @@ class DateTime implements Serializable
     /**
      * First sunday of month
      */
-    public function firstSundayOfMonth(int $month=NULL) : self
+    public function firstSundayOfMonth(int $month=null) : self
     {
         $this->firstDayOfMonth($month);
         $diff = 7 - (int)$this->format('N');
-        if($diff) {
+        if ($diff) {
             $this->add($diff.' days');
         }
         return $this;
@@ -619,11 +621,11 @@ class DateTime implements Serializable
     /**
      * Last sunday of month
      */
-    public function lastSundayOfMonth(int $month=NULL) : self
+    public function lastSundayOfMonth(int $month=null) : self
     {
         $this->lastDayOfMonth($month);
         $diff = $this->format('N');
-        if($diff != '7') {
+        if ($diff != '7') {
             $this->sub($diff.' days');
         }
         return $this;
@@ -634,10 +636,10 @@ class DateTime implements Serializable
     /**
      * First monday of month
      */
-    public function firstMondayOfMonth(int $month=NULL) : self
+    public function firstMondayOfMonth(int $month=null) : self
     {
         $this->firstDayOfMonth($month);
-        while( $this->format('N') != '1') {
+        while ($this->format('N') != '1') {
             $this->add('1 day');
         }
         return $this;
@@ -648,10 +650,10 @@ class DateTime implements Serializable
     /**
      * Last monday of month
      */
-    public function lastMondayOfMonth(int $month=NULL) : self
+    public function lastMondayOfMonth(int $month=null) : self
     {
         $this->lastDayOfMonth($month);
-        while( $this->format('N') != '1' ) {
+        while ($this->format('N') != '1') {
             $this->sub('1 day');
         }
         return $this;
@@ -662,10 +664,10 @@ class DateTime implements Serializable
     /**
      * First friday of month
      */
-    public function firstFridayOfMonth(int $month=NULL) : self
+    public function firstFridayOfMonth(int $month=null) : self
     {
         $this->firstDayOfMonth($month);
-        while( $this->format('N') != '5' ) {
+        while ($this->format('N') != '5') {
             $this->add('1 day');
         }
         return $this;
@@ -676,10 +678,10 @@ class DateTime implements Serializable
     /**
      * Last friday of month
      */
-    public function lastFridayOfMonth(int $month=NULL) : self
+    public function lastFridayOfMonth(int $month=null) : self
     {
         $this->lastDayOfMonth($month);
-        while( $this->format('N') != '5' ) {
+        while ($this->format('N') != '5') {
             $this->sub('1 day');
         }
         return $this;
@@ -693,8 +695,8 @@ class DateTime implements Serializable
     public function setHolidays(array $holidays) : self
     {
         $this->holidays = [];
-        foreach($holidays as $holiday) {
-            $this->addHoliday( $holiday );
+        foreach ($holidays as $holiday) {
+            $this->addHoliday($holiday);
         }
         return $this;
     }
@@ -716,12 +718,12 @@ class DateTime implements Serializable
      */
     public function addHoliday(string $date) : self
     {
-        if(
+        if (
             preg_match('/^[01][0-9]-[0-3][0-9]$/', $date)
             ||
             preg_match('/^[0-9]{4}-[01][0-9]-[0-3][0-9]$/', $date)
         ) {
-            if(!in_array($date, $this->holidays)) {
+            if (!in_array($date, $this->holidays)) {
                 $this->holidays[] = $date;
             }
         } else {
@@ -739,7 +741,7 @@ class DateTime implements Serializable
     {
         $formatted_full = $this->format('Y-m-d');
         $formatted_part = $this->format('m-d');
-        return (in_array($formatted_full, $this->holidays) || in_array($formatted_part, $this->holidays) );
+        return (in_array($formatted_full, $this->holidays) || in_array($formatted_part, $this->holidays));
     }
 
 
@@ -750,7 +752,7 @@ class DateTime implements Serializable
     public function isWorkDay() : bool
     {
         $dow = $this->format('N');
-        if($dow > 5) {
+        if ($dow > 5) {
             return false;
         }
         return !$this->isHoliday();
@@ -761,10 +763,10 @@ class DateTime implements Serializable
     /**
      * First workday of month
      */
-    public function firstWorkDayOfMonth(int $month=NULL) : self
+    public function firstWorkDayOfMonth(int $month=null) : self
     {
         $this->firstDayOfMonth($month);
-        while( !$this->isWorkDay() ) {
+        while (!$this->isWorkDay()) {
             $this->add('1 day');
         }
         return $this;
@@ -775,10 +777,10 @@ class DateTime implements Serializable
     /**
      * Last workday of month
      */
-    public function lastWorkDayOfMonth(int $month=NULL) : self
+    public function lastWorkDayOfMonth(int $month=null) : self
     {
         $this->lastDayOfMonth($month);
-        while( !$this->isWorkDay() ) {
+        while (!$this->isWorkDay()) {
             $this->sub('1 day');
         }
         return $this;
@@ -789,10 +791,10 @@ class DateTime implements Serializable
     /**
      * First workday of year
      */
-    public function firstWorkDayOfYear(int $year=NULL) : self
+    public function firstWorkDayOfYear(int $year=null) : self
     {
         $this->firstDayOfYear($year);
-        while( !$this->isWorkDay() ) {
+        while (!$this->isWorkDay()) {
             $this->add('1 day');
         }
         return $this;
@@ -803,10 +805,10 @@ class DateTime implements Serializable
     /**
      * Last workday of year
      */
-    public function lastWorkDayOfYear(int $year=NULL) : self
+    public function lastWorkDayOfYear(int $year=null) : self
     {
         $this->lastDayOfYear($year);
-        while( !$this->isWorkDay() ) {
+        while (!$this->isWorkDay()) {
             $this->sub('1 day');
         }
         return $this;
@@ -816,7 +818,7 @@ class DateTime implements Serializable
     /**
      * Next month
      */
-    public function nextMonth(int $day=NULL) : self
+    public function nextMonth(int $day=null) : self
     {
         $month = $this->format('n');
         $next = $month+1;
@@ -838,7 +840,7 @@ class DateTime implements Serializable
     /**
      * Prev month
      */
-    public function prevMonth(int $day=NULL) : self
+    public function prevMonth(int $day=null) : self
     {
         $month = $this->format('n');
         $prev = $month-1;
@@ -859,4 +861,3 @@ class DateTime implements Serializable
         return $this;
     }
 }
-
