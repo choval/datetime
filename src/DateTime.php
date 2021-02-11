@@ -5,7 +5,7 @@ use \DateTimeInterface;
 use \Serializable;
 use \DateTime as PhpDateTime;
 
-class DateTime implements Serializable
+final class DateTime implements Serializable
 {
     const ATOM = "Y-m-d\TH:i:sP";
     const COOKIE = "l, d-M-Y H:i:s T";
@@ -39,14 +39,14 @@ class DateTime implements Serializable
             $tz = date_default_timezone_get();
             $this->tzobj = timezone_open($tz);
         } else {
-            $this->tzobj = static::timezoneParse($timezone);
+            $this->tzobj = self::timezoneParse($timezone);
         }
         $this->offset = $this->tzobj->getOffset(new PhpDateTime());
         if (is_null($format)) {
             if (is_numeric($time)) {
                 $this->format = 'U';
             }
-            $this->obj = static::datetimeParse($time, $this->tzobj);
+            $this->obj = self::datetimeParse($time, $this->tzobj);
         } else {
             $this->format = $format;
             $this->obj = date_create_from_format($format, $time, $this->tzobj);
@@ -67,7 +67,7 @@ class DateTime implements Serializable
      */
     public static function createFromFormat(string $format, string $time='now', $timezone=null) : self
     {
-        return new static($time, $timezone, $format);
+        return new self($time, $timezone, $format);
     }
 
 
@@ -132,7 +132,7 @@ class DateTime implements Serializable
     public static function datetimeParse($time='now', $timezone=null) : PhpDateTime
     {
         if ($timezone) {
-            $timezone = static::timezoneParse($timezone);
+            $timezone = self::timezoneParse($timezone);
         }
         if (is_numeric($time)) {
             $obj = new PhpDateTime();
@@ -163,7 +163,7 @@ class DateTime implements Serializable
      */
     public function add($interval) : self
     {
-        $interval = static::intervalParse($interval);
+        $interval = self::intervalParse($interval);
         $this->obj->add($interval);
         $this->time = (int)$this->obj->format('U');
         return $this;
@@ -179,7 +179,7 @@ class DateTime implements Serializable
      */
     public function sub($interval) : self
     {
-        $interval = static::intervalParse($interval);
+        $interval = self::intervalParse($interval);
         $this->obj->sub($interval);
         $this->time = (int)$this->obj->format('U');
         return $this;
@@ -194,7 +194,7 @@ class DateTime implements Serializable
     {
         $obj = clone $this->obj;
         if (!is_null($timezone)) {
-            $timezone = static::timezoneParse($timezone);
+            $timezone = self::timezoneParse($timezone);
             if ($timezone) {
                 $obj->setTimezone($timezone);
             }
@@ -251,8 +251,8 @@ class DateTime implements Serializable
         $this->offset = $in['offset'];
         $this->format = $in['format'];
         $this->holidays = $in['holidays'];
-        $this->tzobj = static::timezoneParse($this->offset);
-        $this->obj = static::datetimeParse($this->time, $this->tzobj);
+        $this->tzobj = self::timezoneParse($this->offset);
+        $this->obj = self::datetimeParse($this->time, $this->tzobj);
     }
 
 
@@ -342,7 +342,7 @@ class DateTime implements Serializable
      */
     public function setTimezone($timezone) : self
     {
-        $timezone = static::timezoneParse($timezone);
+        $timezone = self::timezoneParse($timezone);
         if ($timezone) {
             $this->tzobj = $timezone;
             $this->obj->setTimezone($timezone);
@@ -367,7 +367,7 @@ class DateTime implements Serializable
     /**
      * set state
      */
-    public function __set_state(array $array) : self
+    public static function __set_state(array $array) : self
     {
         $obj = new self;
         $obj->time = $array['time'];
@@ -417,7 +417,7 @@ class DateTime implements Serializable
      */
     public function atom()
     {
-        return $this->format(static::ATOM);
+        return $this->format(self::ATOM);
     }
 
 
@@ -427,7 +427,7 @@ class DateTime implements Serializable
      */
     public function cookie()
     {
-        return $this->format(static::COOKIE);
+        return $this->format(self::COOKIE);
     }
 
 
@@ -437,7 +437,7 @@ class DateTime implements Serializable
      */
     public function iso8601()
     {
-        return $this->format(static::ISO8601);
+        return $this->format(self::ISO8601);
     }
 
 
@@ -467,31 +467,31 @@ class DateTime implements Serializable
      */
     public function rfc822()
     {
-        return $this->format(static::RFC822);
+        return $this->format(self::RFC822);
     }
     public function rfc850()
     {
-        return $this->format(static::RFC850);
+        return $this->format(self::RFC850);
     }
     public function rfc1036()
     {
-        return $this->format(static::RFC1036);
+        return $this->format(self::RFC1036);
     }
     public function rfc1123()
     {
-        return $this->format(static::RFC1123);
+        return $this->format(self::RFC1123);
     }
     public function rfc2822()
     {
-        return $this->format(static::RFC2822);
+        return $this->format(self::RFC2822);
     }
     public function rfc3339()
     {
-        return $this->format(static::RFC3339);
+        return $this->format(self::RFC3339);
     }
     public function rfc3339Extended()
     {
-        return $this->format(static::RFC3339_EXTENDED);
+        return $this->format(self::RFC3339_EXTENDED);
     }
 
 
@@ -501,7 +501,7 @@ class DateTime implements Serializable
      */
     public function rss()
     {
-        return $this->format(static::RSS);
+        return $this->format(self::RSS);
     }
 
 
@@ -511,7 +511,7 @@ class DateTime implements Serializable
      */
     public function w3c()
     {
-        return $this->format(static::W3C);
+        return $this->format(self::W3C);
     }
 
 
