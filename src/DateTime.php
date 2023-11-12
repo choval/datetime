@@ -5,7 +5,7 @@ use \DateTimeInterface;
 use \Serializable;
 use \DateTime as PhpDateTime;
 
-final class DateTime implements Serializable
+final class DateTime
 {
     const ATOM = "Y-m-d\TH:i:sP";
     const COOKIE = "l, d-M-Y H:i:s T";
@@ -228,7 +228,7 @@ final class DateTime implements Serializable
     /**
      * Serialize
      */
-    public function serialize()
+    public function __serialize()
     {
         $out = [
             'time' => $this->time,
@@ -244,7 +244,7 @@ final class DateTime implements Serializable
     /**
      * Unserialize
      */
-    public function unserialize($data)
+    public function __unserialize($data)
     {
         $in = unserialize($data);
         $this->time = $in['time'];
